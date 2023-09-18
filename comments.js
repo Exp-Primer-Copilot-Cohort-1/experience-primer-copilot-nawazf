@@ -4,55 +4,70 @@ var http = require('http');
 var fs = require('fs');
 var url = require('url');
 var qs = require('querystring');
-// 2. create web server
+// 2. create web server object
 var server = http.createServer(function(request,response){
     var parsedUrl = url.parse(request.url);
     var resource = parsedUrl.pathname;
     console.log('resource='+resource);
-
-    // if request method is GET
-    if(request.method == 'GET'){
-        if(resource == '/'){
-            fs.readFile('index.html', 'utf-8', function(error, data){
-                response.writeHead(200, {'Content-Type':'text/html'});
-                response.end(data);
+    // if client request is '/hello'
+    if(resource == '/hello'){
+        // 3. response to client
+        response.writeHead(200,{'Content-Type':'text/html'});
+        response.end('Hello World');
+    }else if(resource == '/welcome'){
+        response.writeHead(200,{'Content-Type':'text/html'});
+        response.end('Welcome');
+    }else if(resource == '/echo'){
+        var method = request.method;
+        console.log('method='+method);
+        if(method == 'GET'){
+            var parsedUrl = url.parse(request.url,true);
+            console.log(parsedUrl);
+            var query = parsedUrl.query;
+            console.log(query);
+            response.writeHead(200,{'Content-Type':'text/html'});
+            response.end('GET method, query string:'+JSON.stringify(query));
+        }else if(method == 'POST'){
+            var body = '';
+            request.on('data',function(data){
+                body += data;
             });
-        }else if(resource == '/favicon.ico'){
-            fs.readFile('favicon.ico', function(error, data){
-                response.end(data);
-            });
-        }else if(resource == '/comments'){
-            fs.readFile('comments.json', 'utf-8', function(error, data){
-                response.writeHead(200, {'Content-Type':'application/json'});
-                response.end(data);
-            });
-        }else{
-            fs.readFile('index.html', 'utf-8', function(error, data){
-                response.writeHead(200, {'Content-Type':'text/html'});
-                response.end(data);
-            });
-        }
-    // if request method is POST
-    }else if(request.method == 'POST'){
-        if(resource == '/comments'){
-            // read message
-            request.on('data', function(data){
-                var message = JSON.parse(data);
-                console.log(message);
-                // write message to comments.json
-                fs.readFile('comments.json', 'utf-8', function(error, data){
-                    var comments = JSON.parse(data);
-                    comments.push(message);
-                    fs.writeFile('comments.json', JSON.stringify(comments), function(error){
-                        response.writeHead(200, {'Content-Type':'application/json'});
-                        response.end(JSON.stringify(comments));
-                    });
-                });
+            request.on('end',function(){
+                var post = qs.parse(body);
+                console.log(post);
+                response.writeHead(200,{'Content-Type':'text/html'});
+                response.end('POST method, body:'+JSON.stringify(post));
             });
         }
+    }else if(resource == '/comment'){
+        var method = request.method;
+        console.log('method='+method);
+        if(method == 'GET'){
+            var parsedUrl = url.parse(request.url,true);
+            console.log(parsedUrl);
+            var query = parsedUrl.query;
+            console.log(query);
+            response.writeHead(200,{'Content-Type':'text/html'});
+            response.end('GET method, query string:'+JSON.stringify(query));
+        }else if(method == 'POST'){
+            var body = '';
+            request.on('data',function(data){
+                body += data;
+            });
+            request.on('end',function(){
+                var post = qs.parse(body);
+                console.log(post);
+                response.writeHead(200,{'Content-Type':'text/html'});
+                response.end('POST method, body:'+JSON.stringify(post));
+            });
+        }
+    }else{
+        response.writeHead(404,{'Content-Type':'text/html'});
+        response.end('404 Not Found');
     }
 });
-// 3. start web server
-server.listen(3000, function(){
-    console.log('Server running at http://localhost:3000');
-});
+// 4. start web server
+server.listen(8080,function(){
+    console.log('Server running at http://',
+    localhost:8080');
+}
